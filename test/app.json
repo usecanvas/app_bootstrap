@@ -1,0 +1,23 @@
+{
+  "env": {
+    "REQUIRED": {
+      "description": "Description of a required value"
+    },
+    "NOT_REQUIRED": {
+      "description": "Description of a non-required value",
+      "required": false
+    },
+    "NOT_DEV_REQUIRED": {
+      "description": "Description of a non-required value",
+      "development_required": false
+    },
+    "VALUE": {
+      "description": "Description of a provided value",
+      "value": "value"
+    },
+    "DEVELOPMENT_VALUE": {
+      "description": "Description of a provided development value",
+      "value": "development_value"
+    }
+  }
+}
