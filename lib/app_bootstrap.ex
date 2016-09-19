@@ -102,10 +102,10 @@ defmodule AppBootstrap do
   @spec get_value(String.t, map) :: String.t
   defp get_value(key, descriptor) do
     case descriptor do
-      %{"development_required" => false} -> ""
-      %{"required" => false} -> ""
       %{"development_value" => value} -> value
       %{"value" => value} -> value
+      %{"development_required" => false} -> ""
+      %{"required" => false} -> ""
       %{"description" => description} ->
         IO.puts ~s(Provide a value for "#{key}":)
         IO.puts ~s("#{description}")
