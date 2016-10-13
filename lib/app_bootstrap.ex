@@ -115,8 +115,9 @@ defmodule AppBootstrap do
 
   @spec format_dotenv(map) :: String.t
   defp format_dotenv(dotenv) do
-    Enum.reduce(dotenv, "", fn ({key, value}, string) ->
-      "#{string}#{key}=#{value}\n"
+    Enum.reduce(dotenv, "", fn
+      ({_, ""}, string) -> string
+      ({key, value}, string) -> "#{string}#{key}=#{value}\n"
     end)
   end
 end
