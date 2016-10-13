@@ -26,6 +26,7 @@ defmodule AppBootstrap.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:poison, "~> 2.2.0"}]
+    [{:poison, "~> 2.2.0"},
+     {:dialyxir, ">= 0.0.0", only: [:dev]}]
   end
 end

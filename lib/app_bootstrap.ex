@@ -4,6 +4,7 @@ defmodule AppBootstrap do
     aliases: [a: :app, e: :env, o: :out]
   ]
 
+  @spec main(OptionParser.argv) :: no_return
   def main(argv) do
     with {:ok, parsed} <- parse_args(argv),
          {:ok, app_env} <- read_app_env(parsed[:app] || "./app.json"),
@@ -13,17 +14,17 @@ defmodule AppBootstrap do
       IO.puts "New env written to #{parsed[:out]}"
       exit(:normal)
     else
-      {:error, invalid} ->
-        exit(invalid)
+      error ->
+        exit(error)
     end
   end
 
-  @spec parse_args(OptionParser.argv) ::
-        {:ok, OptionParser.parsed} | {:error, String.t}
+  @spec parse_args(OptionParser.argv) :: {:ok, OptionParser.parsed}
+                                       | {:error, String.t}
   defp parse_args(argv) do
     case OptionParser.parse(argv, @switches) do
       {parsed, _, []} -> {:ok, parsed}
-      {_, _, invalid} -> {:error, "Invalid arguments passed"}
+      _ -> {:error, "Invalid arguments passed"}
     end
   end
 
@@ -57,7 +58,7 @@ defmodule AppBootstrap do
       case line do
         "" ->
           {:cont, {:ok, dotenv}}
-        value_line ->
+        _value_line ->
           case parse_line(line) do
             {:ok, {key, value}} ->
               {:cont, {:ok, Map.put(dotenv, key, value)}}
@@ -87,7 +88,7 @@ defmodule AppBootstrap do
     end
   end
 
-  @spec merge_env(map, map) :: String.t
+  @spec merge_env(map, map) :: map
   defp merge_env(local, app) do
     Enum.reduce(app, local, fn ({key, descriptor}, local) ->
       case Map.get(local, key) do
@@ -107,8 +108,8 @@ defmodule AppBootstrap do
       %{"development_required" => false} -> ""
       %{"required" => false} -> ""
       %{"description" => description} ->
-        IO.puts ~s(Provide a value for "#{key}":)
-        IO.puts ~s("#{description}")
+        puts ~s(Provide a value for "#{key}":)
+        puts ~s("#{description}")
         IO.gets("➜ ") |> String.trim_trailing
     end
   end
@@ -120,4 +121,7 @@ defmodule AppBootstrap do
       ({key, value}, string) -> "#{string}#{key}=#{value}\n"
     end)
   end
+
+  @spec puts(String.t) :: :ok
+  defp puts(string), do: IO.puts :stderr, string
 end
