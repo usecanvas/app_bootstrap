@@ -1,15 +1,24 @@
 defmodule AppBootstrap do
+  @moduledoc """
+  Bootstraps an app's development environment by reading an existing .env file
+  and merging it with user input and values from the app.json configuration
+  file.
+  """
+
   @switches [
     strict: [app: :string, env: :string, out: :string],
     aliases: [a: :app, e: :env, o: :out]
   ]
 
+  @doc """
+  Run the bootstrap as a command line task.
+  """
   @spec main(OptionParser.argv) :: no_return
   def main(argv) do
     with {:ok, parsed} <- parse_args(argv),
-         {:ok, app_env} <- read_app_env(parsed[:app] || "./app.json"),
+         {:ok, app_json_env} <- read_app_json_env(parsed[:app] || "./app.json"),
          {:ok, local_env} <- read_local_env(parsed[:env] || "./.env"),
-         new_dotenv = merge_env(local_env, app_env) |> format_dotenv,
+         new_dotenv = merge_env(local_env, app_json_env) |> format_dotenv,
          :ok <- File.write(parsed[:out], new_dotenv) do
       IO.puts "New env written to #{parsed[:out]}"
       exit(:normal)
@@ -19,6 +28,7 @@ defmodule AppBootstrap do
     end
   end
 
+  # Parse user-supplied arguments.
   @spec parse_args(OptionParser.argv) :: {:ok, OptionParser.parsed}
                                        | {:error, String.t}
   defp parse_args(argv) do
@@ -28,8 +38,9 @@ defmodule AppBootstrap do
     end
   end
 
-  @spec read_app_env(String.t) :: {:ok, map} | {:error, String.t}
-  defp read_app_env(app_json_path) do
+  # Read the app.json file's env
+  @spec read_app_json_env(String.t) :: {:ok, map} | {:error, String.t}
+  defp read_app_json_env(app_json_path) do
     with {:ok, json} <- File.read(app_json_path),
          {:ok, map} <- Poison.decode(json),
          env when is_map(env) <- Map.get(map, "env") do
@@ -39,6 +50,7 @@ defmodule AppBootstrap do
     end
   end
 
+  # Read the existing .env file
   @spec read_local_env(String.t) :: {:ok, map} | {:error, String.t}
   defp read_local_env(env_path) do
     env_string =
@@ -50,6 +62,7 @@ defmodule AppBootstrap do
     parse_dotenv(env_string)
   end
 
+  # Parse a .env string into a map
   @spec parse_dotenv(String.t) :: {:ok, map} | {:error, String.t}
   defp parse_dotenv(env_string) do
     env_string
@@ -69,6 +82,7 @@ defmodule AppBootstrap do
     end)
   end
 
+  # Parse a single line in a .env string
   @spec parse_line(String.t) :: {:ok, {String.t, String.t}} | {:error, String.t}
   defp parse_line(line) do
     case String.split(line, "=", parts: 2) do
@@ -79,6 +93,7 @@ defmodule AppBootstrap do
     end
   end
 
+  # Strip quotes from a .env value
   @spec strip_quotes(String.t) :: String.t
   defp strip_quotes(value) do
     if String.starts_with?(value, ~s(")) and String.ends_with?(value, ~s(")) do
@@ -88,6 +103,7 @@ defmodule AppBootstrap do
     end
   end
 
+  # Merge two env maps
   @spec merge_env(map, map) :: map
   defp merge_env(local, app) do
     Enum.reduce(app, local, fn ({key, descriptor}, local) ->
@@ -100,6 +116,7 @@ defmodule AppBootstrap do
     end)
   end
 
+  # Get a value from an app.json env configuration declaration
   @spec get_value(String.t, map) :: String.t
   defp get_value(key, descriptor) do
     case descriptor do
@@ -108,12 +125,13 @@ defmodule AppBootstrap do
       %{"development_required" => false} -> ""
       %{"required" => false} -> ""
       %{"description" => description} ->
-        puts ~s(Provide a value for "#{key}":)
-        puts ~s("#{description}")
+        IO.puts ~s(Provide a value for "#{key}":)
+        IO.puts ~s("#{description}")
         IO.gets("➜ ") |> String.trim_trailing
     end
   end
 
+  # Format a .env map as a .env string
   @spec format_dotenv(map) :: String.t
   defp format_dotenv(dotenv) do
     Enum.reduce(dotenv, "", fn
@@ -121,7 +139,4 @@ defmodule AppBootstrap do
       ({key, value}, string) -> "#{string}#{key}=#{value}\n"
     end)
   end
-
-  @spec puts(String.t) :: :ok
-  defp puts(string), do: IO.puts :stderr, string
 end
