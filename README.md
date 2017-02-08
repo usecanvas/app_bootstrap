@@ -4,21 +4,9 @@
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+1. Ensure escripts are in your path for current Elixir version, e.g. `$HOME/.asdf/installs/elixir/1.4.1/.mix/scripts`
+2. `mix escript.install https://github.com/usecanvas/app_bootstrap/releases/download/v0.0.2/app_bootstrap`
 
-  1. Add `app_bootstrap` to your list of dependencies in `mix.exs`:
+## Use
 
-    ```elixir
-    def deps do
-      [{:app_bootstrap, "~> 0.1.0"}]
-    end
-    ```
-
-  2. Ensure `app_bootstrap` is started before your application:
-
-    ```elixir
-    def application do
-      [applications: [:app_bootstrap]]
-    end
-    ```
-
+`app_bootstrap -o .env`
